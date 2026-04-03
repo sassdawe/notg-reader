@@ -5,7 +5,7 @@ export interface AuthenticatedRequest extends Request {
   user?: TokenPayload;
 }
 
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+export async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
 
   if (!token) {
@@ -13,12 +13,11 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
     return;
   }
 
-  verifyToken(token)
-    .then((payload) => {
-      req.user = payload;
-      next();
-    })
-    .catch(() => {
-      res.status(401).json({ error: 'Invalid or expired token' });
-    });
+  try {
+    const payload = await verifyToken(token);
+    req.user = payload;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
 }

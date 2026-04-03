@@ -12,6 +12,7 @@ import { opmlRouter } from './routes/opml.js';
 import { searchRouter } from './routes/search.js';
 import { settingsRouter } from './routes/settings.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { csrfProtection } from './middleware/csrf.js';
 import { logger } from './utils/logger.js';
 
 export function createApp() {
@@ -36,6 +37,7 @@ export function createApp() {
   app.use(compression());
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
+  app.use(csrfProtection);
 
   // Health check
   app.get('/api/health', (_req, res) => {
