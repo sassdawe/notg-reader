@@ -10,13 +10,15 @@ itemRouter.use(requireAuth);
 
 itemRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
   try {
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.min(Math.max(1, parseInt(String(req.query.limit || '50'), 10) || 50), 100);
     const result = await itemService.getUserItems(req.user!.userId, {
       feedId: req.query.feedId as string | undefined,
       isRead: req.query.isRead !== undefined ? req.query.isRead === 'true' : undefined,
       isStarred: req.query.isStarred !== undefined ? req.query.isStarred === 'true' : undefined,
       labelId: req.query.labelId as string | undefined,
-      page: parseInt(String(req.query.page || '1'), 10),
-      limit: Math.min(parseInt(String(req.query.limit || '50'), 10), 100),
+      page,
+      limit,
     });
     res.json(result);
   } catch (error) {

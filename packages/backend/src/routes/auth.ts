@@ -15,6 +15,11 @@ const profileSchema = z.object({
   email: z.string().email().optional(),
 });
 
+const finishSchema = z.object({
+  userId: z.string().uuid(),
+  response: z.object({}).passthrough(),
+});
+
 authRouter.post('/register/start', validate(usernameSchema), async (req, res, next) => {
   try {
     const result = await authService.startRegistration(req.body.username);
@@ -24,7 +29,7 @@ authRouter.post('/register/start', validate(usernameSchema), async (req, res, ne
   }
 });
 
-authRouter.post('/register/finish', async (req, res, next) => {
+authRouter.post('/register/finish', validate(finishSchema), async (req, res, next) => {
   try {
     const { userId, response } = req.body;
     const result = await authService.finishRegistration(userId, response);
@@ -51,7 +56,7 @@ authRouter.post('/login/start', validate(usernameSchema), async (req, res, next)
   }
 });
 
-authRouter.post('/login/finish', async (req, res, next) => {
+authRouter.post('/login/finish', validate(finishSchema), async (req, res, next) => {
   try {
     const { userId, response } = req.body;
     const result = await authService.finishAuthentication(userId, response);

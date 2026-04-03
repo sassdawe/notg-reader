@@ -49,6 +49,16 @@ feedRouter.delete('/:subscriptionId', async (req: AuthenticatedRequest, res, nex
 feedRouter.post('/:feedId/refresh', async (req: AuthenticatedRequest, res, next) => {
   try {
     const feedId = Array.isArray(req.params.feedId) ? req.params.feedId[0] : req.params.feedId;
+    // Verify user is subscribed to this feed
+    const { getDb } = await import('../utils/db.js');
+    const db = getDb();
+    const subscription = await db.subscription.findFirst({
+      where: { userId: req.user!.userId, feedId },
+    });
+    if (!subscription) {
+      res.status(404).json({ error: 'Feed not found in your subscriptions' });
+      return;
+    }
     await feedService.refreshFeed(feedId);
     res.json({ success: true });
   } catch (error) {
