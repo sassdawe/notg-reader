@@ -1,0 +1,37 @@
+.searchForm {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.searchInput:focus {
+  outline: 2px solid var(--color-primary);
+}
+
+.searchButton {
+  padding: 0.6rem 1.25rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.searchButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.searchButton:disabled {
+  opacity: 0.6;
+}
