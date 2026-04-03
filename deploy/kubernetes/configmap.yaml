@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notg-reader-config
+  namespace: notg-reader
+data:
+  NODE_ENV: "production"
+  PORT: "3001"
+  RP_ID: "notg-reader.example.com"
+  RP_NAME: "notg-reader"
+  RP_ORIGIN: "https://notg-reader.example.com"
