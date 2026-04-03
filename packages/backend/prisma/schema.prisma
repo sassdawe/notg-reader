@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  username        String   @unique
+  displayName     String?
+  encryptedEmail  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  authenticators  Authenticator[]
+  subscriptions   Subscription[]
+  userItems       UserItem[]
+  labels          Label[]
+  settings        UserSettings?
+  challenges      AuthChallenge[]
+}
+
+model Authenticator {
+  id                  String   @id @default(uuid())
+  credentialId        String   @unique
+  credentialPublicKey String
+  counter             BigInt
+  credentialDeviceType String
+  credentialBackedUp  Boolean
+  transports          String?
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+
+  @@index([userId])
+}
+
+model AuthChallenge {
+  id        String   @id @default(uuid())
+  challenge String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Feed {
+  id            String   @id @default(uuid())
+  url           String   @unique
+  title         String?
+  description   String?
+  siteUrl       String?
+  imageUrl      String?
+  lastFetchedAt DateTime?
+  lastError     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         FeedItem[]
+  subscriptions Subscription[]
+}
+
+model FeedItem {
+  id          String   @id @default(uuid())
+  feedId      String
+  feed        Feed     @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  guid        String
+  title       String
+  link        String?
+  content     String?
+  summary     String?
+  author      String?
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userItems   UserItem[]
+
+  @@unique([feedId, guid])
+  @@index([feedId])
+  @@index([publishedAt])
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedId    String
+  feed      Feed     @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  title     String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, feedId])
+  @@index([userId])
+  @@index([feedId])
+}
+
+model UserItem {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedItemId String
+  feedItem   FeedItem @relation(fields: [feedItemId], references: [id], onDelete: Cascade)
+  isRead     Boolean  @default(false)
+  isStarred  Boolean  @default(false)
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  labels     UserItemLabel[]
+
+  @@unique([userId, feedItemId])
+  @@index([userId])
+  @@index([feedItemId])
+  @@index([userId, isRead])
+  @@index([userId, isStarred])
+}
+
+model Label {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  color     String?
+  createdAt DateTime @default(now())
+
+  userItems UserItemLabel[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model UserItemLabel {
+  id         String   @id @default(uuid())
+  userItemId String
+  userItem   UserItem @relation(fields: [userItemId], references: [id], onDelete: Cascade)
+  labelId    String
+  label      Label    @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([userItemId, labelId])
+}
+
+model UserSettings {
+  id              String  @id @default(uuid())
+  userId          String  @unique
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewMode        String  @default("list")
+  offlineRetention Int    @default(7)
+  theme           String  @default("light")
+}
