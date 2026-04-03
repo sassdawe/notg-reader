@@ -21,6 +21,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
       ...headers,
     },
   };
