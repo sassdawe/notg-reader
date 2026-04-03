@@ -1,6 +1,6 @@
 import { getDb } from '../utils/db.js';
 
-export type SortOrder = 'date' | 'relevance';
+export type SortOrder = 'date';
 
 export async function getUserItems(
   userId: string,
@@ -9,13 +9,12 @@ export async function getUserItems(
     isRead?: boolean;
     isStarred?: boolean;
     labelId?: string;
-    sort?: SortOrder;
     page?: number;
     limit?: number;
   } = {},
 ) {
   const db = getDb();
-  const { feedId, isRead, isStarred, labelId, sort = 'date', page = 1, limit = 50 } = options;
+  const { feedId, isRead, isStarred, labelId, page = 1, limit = 50 } = options;
 
   // Build where clause
   const where: Record<string, unknown> = {};
@@ -48,9 +47,7 @@ export async function getUserItems(
         },
       },
     },
-    orderBy: sort === 'date'
-      ? { publishedAt: 'desc' }
-      : { publishedAt: 'desc' },
+    orderBy: { publishedAt: 'desc' },
     skip: (page - 1) * limit,
     take: limit,
   });
@@ -115,26 +112,25 @@ export async function markItemRead(userId: string, feedItemId: string) {
 
 export async function markItemsRead(userId: string, feedItemIds: string[]) {
   const db = getDb();
-  const results = [];
-  for (const feedItemId of feedItemIds) {
-    const result = await db.userItem.upsert({
-      where: {
-        userId_feedItemId: { userId, feedItemId },
-      },
-      create: {
-        userId,
-        feedItemId,
-        isRead: true,
-        readAt: new Date(),
-      },
-      update: {
-        isRead: true,
-        readAt: new Date(),
-      },
-    });
-    results.push(result);
-  }
-  return results;
+  return db.$transaction(
+    feedItemIds.map((feedItemId) =>
+      db.userItem.upsert({
+        where: {
+          userId_feedItemId: { userId, feedItemId },
+        },
+        create: {
+          userId,
+          feedItemId,
+          isRead: true,
+          readAt: new Date(),
+        },
+        update: {
+          isRead: true,
+          readAt: new Date(),
+        },
+      }),
+    ),
+  );
 }
 
 export async function toggleStarItem(userId: string, feedItemId: string) {

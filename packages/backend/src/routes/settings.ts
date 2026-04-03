@@ -10,7 +10,7 @@ settingsRouter.use(requireAuth);
 
 const updateSettingsSchema = z.object({
   viewMode: z.enum(['list', 'expanded']).optional(),
-  offlineRetention: z.enum(['7', '14', '30']).transform(Number).optional(),
+  offlineRetention: z.union([z.literal(7), z.literal(14), z.literal(30)]).optional(),
   theme: z.enum(['light', 'dark']).optional(),
 });
 

@@ -70,22 +70,24 @@ export async function subscribeFeed(userId: string, feedUrl: string, customTitle
 
     // Store initial items
     if (parsed.items.length > 0) {
-      for (const item of parsed.items) {
-        await db.feedItem.upsert({
-          where: { feedId_guid: { feedId: feed!.id, guid: item.guid } },
-          create: {
-            feedId: feed!.id,
-            guid: item.guid,
-            title: item.title,
-            link: item.link,
-            content: item.content,
-            summary: item.summary,
-            author: item.author,
-            publishedAt: item.publishedAt,
-          },
-          update: {},
-        });
-      }
+      await db.$transaction(
+        parsed.items.map((item) =>
+          db.feedItem.upsert({
+            where: { feedId_guid: { feedId: feed!.id, guid: item.guid } },
+            create: {
+              feedId: feed!.id,
+              guid: item.guid,
+              title: item.title,
+              link: item.link,
+              content: item.content,
+              summary: item.summary,
+              author: item.author,
+              publishedAt: item.publishedAt,
+            },
+            update: {},
+          }),
+        ),
+      );
     }
   }
 
@@ -123,22 +125,24 @@ export async function refreshFeed(feedId: string) {
     });
 
     if (parsed.items.length > 0) {
-      for (const item of parsed.items) {
-        await db.feedItem.upsert({
-          where: { feedId_guid: { feedId, guid: item.guid } },
-          create: {
-            feedId,
-            guid: item.guid,
-            title: item.title,
-            link: item.link,
-            content: item.content,
-            summary: item.summary,
-            author: item.author,
-            publishedAt: item.publishedAt,
-          },
-          update: {},
-        });
-      }
+      await db.$transaction(
+        parsed.items.map((item) =>
+          db.feedItem.upsert({
+            where: { feedId_guid: { feedId, guid: item.guid } },
+            create: {
+              feedId,
+              guid: item.guid,
+              title: item.title,
+              link: item.link,
+              content: item.content,
+              summary: item.summary,
+              author: item.author,
+              publishedAt: item.publishedAt,
+            },
+            update: {},
+          }),
+        ),
+      );
     }
 
     return parsed;

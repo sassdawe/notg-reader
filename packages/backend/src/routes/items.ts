@@ -15,7 +15,6 @@ itemRouter.get('/', async (req: AuthenticatedRequest, res, next) => {
       isRead: req.query.isRead !== undefined ? req.query.isRead === 'true' : undefined,
       isStarred: req.query.isStarred !== undefined ? req.query.isStarred === 'true' : undefined,
       labelId: req.query.labelId as string | undefined,
-      sort: (req.query.sort as 'date' | 'relevance') || 'date',
       page: parseInt(String(req.query.page || '1'), 10),
       limit: Math.min(parseInt(String(req.query.limit || '50'), 10), 100),
     });
