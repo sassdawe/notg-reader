@@ -14,23 +14,54 @@ import { getDb } from '../utils/db.js';
 import { createToken } from '../utils/jwt.js';
 import { encrypt } from '../utils/encryption.js';
 
-const rpID = () => process.env.RP_ID || 'localhost';
+import { AppError } from '../middleware/errorHandler.js';
+
+function getCodespacesOrigin(): string | undefined {
+  const codespaceName = process.env.CODESPACE_NAME;
+  if (codespaceName) {
+    const domain = process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN || 'app.github.dev';
+    return `https://${codespaceName}-3000.${domain}`;
+  }
+  return undefined;
+}
+
+function getCodespacesRpId(): string | undefined {
+  const codespaceName = process.env.CODESPACE_NAME;
+  if (codespaceName) {
+    const domain = process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN || 'app.github.dev';
+    return `${codespaceName}-3000.${domain}`;
+  }
+  return undefined;
+}
+
+const rpID = () => process.env.RP_ID || getCodespacesRpId() || 'localhost';
 const rpName = () => process.env.RP_NAME || 'notg-reader';
-const rpOrigin = () => process.env.RP_ORIGIN || 'http://localhost:3000';
+const rpOrigin = () => process.env.RP_ORIGIN || getCodespacesOrigin() || 'http://localhost:3000';
 
 export async function startRegistration(username: string) {
   const db = getDb();
 
   // Check if user exists
-  const existingUser = await db.user.findUnique({ where: { username } });
-  if (existingUser) {
-    throw new Error('Username already taken');
-  }
-
-  // Create user
-  const user = await db.user.create({
-    data: { username },
+  const existingUser = await db.user.findUnique({
+    where: { username },
+    include: { authenticators: true },
   });
+
+  let user;
+  if (existingUser) {
+    if (existingUser.authenticators.length > 0) {
+      // Fully registered user — cannot re-register
+      throw new AppError(409, 'Username already taken');
+    }
+    // Incomplete registration (no authenticator stored) — clean up and reuse
+    await db.authChallenge.deleteMany({ where: { userId: existingUser.id } });
+    user = existingUser;
+  } else {
+    // Create new user
+    user = await db.user.create({
+      data: { username },
+    });
+  }
 
   const existingAuthenticators = await db.authenticator.findMany({
     where: { userId: user.id },
