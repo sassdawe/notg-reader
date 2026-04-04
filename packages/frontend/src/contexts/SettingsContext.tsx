@@ -7,6 +7,30 @@ interface SettingsContextType {
   updateSettings: (data: Partial<Pick<UserSettings, 'viewMode' | 'offlineRetention' | 'theme'>>) => Promise<void>;
 }
 
+const THEME_STORAGE_KEY = 'notg-reader-theme';
+
+function applyTheme(theme: string) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+// Apply saved theme immediately to avoid flash of wrong theme
+function applySavedTheme() {
+  try {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  } catch {
+    // localStorage unavailable
+  }
+}
+applySavedTheme();
+
 const SettingsContext = createContext<SettingsContextType | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -23,11 +47,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (settings?.theme) {
-      document.documentElement.setAttribute('data-theme', settings.theme);
+      applyTheme(settings.theme);
     }
   }, [settings?.theme]);
 
   const updateSettings = useCallback(async (data: Partial<Pick<UserSettings, 'viewMode' | 'offlineRetention' | 'theme'>>) => {
+    if (data.theme) {
+      applyTheme(data.theme);
+    }
     const updated = await settingsApi.updateSettings(data);
     setSettings(updated);
   }, []);

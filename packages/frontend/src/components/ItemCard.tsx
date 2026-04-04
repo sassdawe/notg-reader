@@ -38,7 +38,7 @@ export function ItemCard({ item, viewMode, onMarkRead, onToggleStar, isSelected,
   return (
     <article
       ref={viewMode === 'expanded' ? observerRef : null}
-      className={`${styles.card} ${item.isRead ? styles.read : ''} ${isSelected ? styles.selected : ''}`}
+      className={`${styles.card} ${item.isRead ? '' : styles.unread} ${isSelected ? styles.selected : ''}`}
       onClick={() => onSelect?.(item.id)}
       role="article"
       aria-label={item.title}
