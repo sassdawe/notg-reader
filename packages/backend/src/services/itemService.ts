@@ -86,37 +86,7 @@ export async function getUserItems(
     );
   }
 
-  const totalWhere: Record<string, unknown> = { ...where };
-  const totalFilters: Record<string, unknown>[] = [];
-
-  if (isRead === true) {
-    totalFilters.push({ userItems: { some: { userId, isRead: true } } });
-  } else if (isRead === false) {
-    totalFilters.push({ userItems: { none: { userId, isRead: true } } });
-  }
-
-  if (isStarred === true) {
-    totalFilters.push({ userItems: { some: { userId, isStarred: true } } });
-  } else if (isStarred === false) {
-    totalFilters.push({ userItems: { none: { userId, isStarred: true } } });
-  }
-
-  if (labelId) {
-    totalFilters.push({
-      userItems: {
-        some: {
-          userId,
-          labels: { some: { labelId } },
-        },
-      },
-    });
-  }
-
-  if (totalFilters.length > 0) {
-    totalWhere.AND = totalFilters;
-  }
-
-  const total = await db.feedItem.count({ where: totalWhere as never });
+  const total = filtered.length;
 
   return { items: filtered, total };
 }
