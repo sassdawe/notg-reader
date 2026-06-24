@@ -66,6 +66,14 @@ labelRouter.post('/assign', validate(assignLabelSchema), async (req: Authenticat
   try {
     const db = getDb();
     const { feedItemId, labelId } = req.body;
+    const label = await db.label.findFirst({
+      where: { id: labelId, userId: req.user!.userId },
+    });
+
+    if (!label) {
+      res.status(404).json({ error: 'Label not found or not accessible' });
+      return;
+    }
 
     // Ensure user item exists
     let userItem = await db.userItem.findUnique({
