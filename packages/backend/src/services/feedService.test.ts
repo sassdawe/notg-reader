@@ -45,4 +45,34 @@ describe('feedService.subscribeFeed', () => {
     expect(result).toEqual(existingSubscription);
     expect(mockDb.subscription.create).not.toHaveBeenCalled();
   });
+
+  it('creates a subscription when user is not already subscribed', async () => {
+    const existingFeed = {
+      id: 'feed-1',
+      url: 'https://example.com/rss',
+    };
+    const createdSubscription = {
+      id: 'sub-2',
+      userId: 'user-1',
+      feedId: 'feed-1',
+      feed: existingFeed,
+    };
+
+    mockDb.feed.findUnique.mockResolvedValue(existingFeed);
+    mockDb.subscription.findUnique.mockResolvedValue(null);
+    mockDb.subscription.create.mockResolvedValue(createdSubscription);
+
+    const { subscribeFeed } = await import('./feedService.js');
+    const result = await subscribeFeed('user-1', 'https://example.com/rss');
+
+    expect(result).toEqual(createdSubscription);
+    expect(mockDb.subscription.create).toHaveBeenCalledWith({
+      data: {
+        userId: 'user-1',
+        feedId: 'feed-1',
+        title: undefined,
+      },
+      include: { feed: true },
+    });
+  });
 });
