@@ -50,9 +50,12 @@ labelRouter.post('/', validate(createLabelSchema), async (req: AuthenticatedRequ
 labelRouter.delete('/:labelId', async (req: AuthenticatedRequest, res, next) => {
   try {
     const db = getDb();
-    await db.label.delete({
-      where: { id: Array.isArray(req.params.labelId) ? req.params.labelId[0] : req.params.labelId },
-    });
+    const labelId = Array.isArray(req.params.labelId) ? req.params.labelId[0] : req.params.labelId;
+    const result = await db.label.deleteMany({ where: { id: labelId, userId: req.user!.userId } });
+    if (result.count === 0) {
+      res.status(404).json({ error: 'Label not found' });
+      return;
+    }
     res.status(204).send();
   } catch (error) {
     next(error);
