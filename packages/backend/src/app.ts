@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import { existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { authRouter } from './routes/auth.js';
@@ -62,10 +63,14 @@ export function createApp() {
   app.use('/api/settings', settingsRouter);
 
   if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(frontendDistPath));
-    app.get(/^\/(?!api(?:\/|$)).*/, (_req, res) => {
-      res.sendFile(path.join(frontendDistPath, 'index.html'));
-    });
+    if (existsSync(frontendDistPath)) {
+      app.use(express.static(frontendDistPath));
+      app.get(/^\/(?!api(?:\/|$)).*/, (_req, res) => {
+        res.sendFile(path.join(frontendDistPath, 'index.html'));
+      });
+    } else {
+      logger.warn(`Frontend dist directory not found: ${frontendDistPath}. Static hosting disabled.`);
+    }
   }
 
   // Error handler
