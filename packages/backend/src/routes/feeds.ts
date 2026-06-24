@@ -9,7 +9,12 @@ export const feedRouter = Router();
 feedRouter.use(requireAuth);
 
 const subscribeSchema = z.object({
-  url: z.string().url(),
+  url: z
+    .string()
+    .url()
+    .refine((u) => ['http:', 'https:'].includes(new URL(u).protocol), {
+      message: 'Feed URL must use http or https',
+    }),
   title: z.string().max(200).optional(),
 });
 
