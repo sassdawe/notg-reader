@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { authRouter } from './routes/auth.js';
 import { feedRouter } from './routes/feeds.js';
 import { itemRouter } from './routes/items.js';
@@ -17,6 +19,7 @@ import { logger } from './utils/logger.js';
 
 export function createApp() {
   const app = express();
+  const frontendDistPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../frontend/dist');
 
   // Security middleware
   app.use(helmet());
@@ -57,6 +60,13 @@ export function createApp() {
   app.use('/api/opml', opmlRouter);
   app.use('/api/search', searchRouter);
   app.use('/api/settings', settingsRouter);
+
+  if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(frontendDistPath));
+    app.get(/^\/(?!api(?:\/|$)).*/, (_req, res) => {
+      res.sendFile(path.join(frontendDistPath, 'index.html'));
+    });
+  }
 
   // Error handler
   app.use(errorHandler);
