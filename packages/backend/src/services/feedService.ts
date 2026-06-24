@@ -91,6 +91,15 @@ export async function subscribeFeed(userId: string, feedUrl: string, customTitle
     }
   }
 
+  const existingSubscription = await db.subscription.findUnique({
+    where: { userId_feedId: { userId, feedId: feed.id } },
+    include: { feed: true },
+  });
+
+  if (existingSubscription) {
+    return existingSubscription;
+  }
+
   // Create subscription
   const subscription = await db.subscription.create({
     data: {
