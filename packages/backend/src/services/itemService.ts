@@ -35,6 +35,31 @@ export async function getUserItems(
     where.feedId = { in: subscribedFeedIds };
   }
 
+  const itemFilters: Record<string, unknown>[] = [];
+  if (isRead === true) {
+    itemFilters.push({ userItems: { some: { userId, isRead: true } } });
+  } else if (isRead === false) {
+    itemFilters.push({ NOT: { userItems: { some: { userId, isRead: true } } } });
+  }
+  if (isStarred === true) {
+    itemFilters.push({ userItems: { some: { userId, isStarred: true } } });
+  } else if (isStarred === false) {
+    itemFilters.push({ NOT: { userItems: { some: { userId, isStarred: true } } } });
+  }
+  if (labelId) {
+    itemFilters.push({
+      userItems: {
+        some: {
+          userId,
+          labels: { some: { labelId } },
+        },
+      },
+    });
+  }
+  if (itemFilters.length > 0) {
+    where.AND = itemFilters;
+  }
+
   // Get feed items with user item data
   const feedItems = await db.feedItem.findMany({
     where: where as never,
@@ -52,8 +77,7 @@ export async function getUserItems(
     take: limit,
   });
 
-  // Filter by read/starred/label status
-  let filtered = feedItems.map((item) => {
+  const filtered = feedItems.map((item) => {
     const userItem = item.userItems[0];
     return {
       id: item.id,
@@ -74,19 +98,7 @@ export async function getUserItems(
     };
   });
 
-  if (isRead !== undefined) {
-    filtered = filtered.filter((item) => item.isRead === isRead);
-  }
-  if (isStarred !== undefined) {
-    filtered = filtered.filter((item) => item.isStarred === isStarred);
-  }
-  if (labelId) {
-    filtered = filtered.filter((item) =>
-      item.labels.some((l) => l.id === labelId),
-    );
-  }
-
-  const total = filtered.length;
+  const total = await db.feedItem.count({ where: where as never });
 
   return { items: filtered, total };
 }
