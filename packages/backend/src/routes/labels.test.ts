@@ -47,7 +47,7 @@ describe('labelRouter POST /assign', () => {
       .send({ feedItemId: 'feed-item-1', labelId: 'label-foreign' });
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({ error: 'Label not found' });
+    expect(response.body).toEqual({ error: 'Label not found or not accessible' });
     expect(mockDb.userItem.findUnique).not.toHaveBeenCalled();
     expect(mockDb.userItemLabel.create).not.toHaveBeenCalled();
   });

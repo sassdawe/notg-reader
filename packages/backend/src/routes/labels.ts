@@ -71,7 +71,7 @@ labelRouter.post('/assign', validate(assignLabelSchema), async (req: Authenticat
     });
 
     if (!label) {
-      res.status(404).json({ error: 'Label not found' });
+      res.status(404).json({ error: 'Label not found or not accessible' });
       return;
     }
 
