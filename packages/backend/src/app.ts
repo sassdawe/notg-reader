@@ -20,8 +20,13 @@ export function createApp() {
 
   // Security middleware
   app.use(helmet());
+
+  const codespacesOrigin = process.env.CODESPACE_NAME
+    ? `https://${process.env.CODESPACE_NAME}-3000.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN || 'app.github.dev'}`
+    : undefined;
+
   app.use(cors({
-    origin: process.env.RP_ORIGIN || 'http://localhost:3000',
+    origin: process.env.RP_ORIGIN || codespacesOrigin || 'http://localhost:3000',
     credentials: true,
   }));
   
