@@ -11,7 +11,7 @@ export function MainLayout() {
     'g': () => navigate('/'),
     's': () => navigate('/starred'),
     '/': () => navigate('/search'),
-    '?': () => {
+    'Shift+?': () => {
       // Show keyboard shortcuts help (could toggle a modal)
       alert('Keyboard Shortcuts:\n\ng - Go to Home\ns - Starred items\n/ - Search\nr - Refresh\nj/k - Next/Previous item\nv - Toggle view mode\nm - Mark as read\nt - Toggle star');
     },
