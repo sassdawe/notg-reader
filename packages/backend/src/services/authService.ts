@@ -170,7 +170,7 @@ export async function startAuthentication(username: string) {
   });
 
   if (!user) {
-    throw new Error('User not found');
+    throw new AppError(404, 'User not found');
   }
 
   const options = await generateAuthenticationOptions({
