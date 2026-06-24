@@ -40,6 +40,12 @@ export function ItemCard({ item, viewMode, onMarkRead, onToggleStar, isSelected,
       ref={viewMode === 'expanded' ? observerRef : null}
       className={`${styles.card} ${item.isRead ? '' : styles.unread} ${isSelected ? styles.selected : ''}`}
       onClick={() => onSelect?.(item.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect?.(item.id);
+        }
+      }}
       role="article"
       aria-label={item.title}
       tabIndex={0}
