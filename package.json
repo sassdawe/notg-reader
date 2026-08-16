@@ -1,0 +1,14 @@
+{
+  "name": "notg-reader",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @notg-reader/backend\" \"npm run dev -w @notg-reader/frontend\"",
+    "build": "npm run build -w @notg-reader/backend && npm run build -w @notg-reader/frontend",
+    "test": "npm run test -w @notg-reader/backend && npm run test -w @notg-reader/frontend",
+    "lint": "npm run lint -w @notg-reader/backend && npm run lint -w @notg-reader/frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
